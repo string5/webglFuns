@@ -42,9 +42,10 @@
 <script src = "./js/shader.js"></script>	
 <script src = "./js/math.js"></script>	
 <script src = "./js/util.js"></script>	
+<script src = "./js/box.js"></script>	
 
 <!----------------------shader--------------------------->
-<script id="shader-vs" type="shader/vertex">
+<script id="vsCube" type="shader/vertex">
 
 	attribute vec3 aPos;
 	attribute vec2 aTc;
@@ -60,7 +61,7 @@
 
 </script>
 
-<script id="shader-fs" type="shader/fragment">
+<script id="psCube" type="shader/fragment">
 	
 	#ifdef GL_ES
 	precision highp float;
