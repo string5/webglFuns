@@ -103,9 +103,9 @@ function infoPad()
 		}
 		else this.infoEle.style.visibility = 'hidden';
 	}
-
-
 }
+
+
 
 function initSounds() 
 {

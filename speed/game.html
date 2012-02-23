@@ -43,6 +43,23 @@
 <script src = "./js/math.js"></script>	
 <script src = "./js/util.js"></script>	
 
+<!----------------------shader--------------------------->
+<script id="shader-vs" type="shader/vertex">
+
+	attribute vec3 aPos;
+	attribute vec2 aTc;
+	
+	uniform mat4 matMVP;
+	
+	varying vec2 tc;
+	void main(void)
+	{
+		gl_Position = matMVP * vec4(aPos, 1.0);
+		tc = aTc;
+	}
+
+</script>
+
 <script id="shader-fs" type="shader/fragment">
 	
 	#ifdef GL_ES
@@ -60,9 +77,11 @@
 	}
 	//float u( float x ) { return abs(x)/x; }
 
+	varying vec2 tc;
 	void main(void)
 	{
-		vec2 p = (2.0*gl_FragCoord.xy-resolution)/resolution.y;
+//		vec2 p = (2.0*gl_FragCoord.xy-resolution)/resolution.y;
+		vec2 p = tc*2.0 - 1.0;
 
 		float a = atan(p.x,p.y);
 		float r = length(p)*.75;
@@ -82,18 +101,8 @@
 	}
 
 </script>
+<!----------------------shader--------------------------->
 
-<script id="shader-vs" type="shader/vertex">
-
-	attribute vec3 aVertexPosition;
-
-	void main(void)
-	{
-		gl_Position = vec4(aVertexPosition, 1.0);
-	}
-
-</script>
-	
 
 <body onload="game();">
 <canvas id = "webgl-canvas" ></canvas>

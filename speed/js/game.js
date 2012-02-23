@@ -10,7 +10,7 @@
 
 
 var canvas;
-var g3D;
+var gl;
 var infoPad;
 
 var timer = {time: 0, dtime: 0, startime: Date.now(), lasttime: Date.now() };
@@ -25,10 +25,10 @@ function canvasResize()
 	canvas.width = window.innerWidth;
 	canvas.height = window.innerHeight;
 
-	attribs = { antialias:true};
-	if(!g3D) g3D = initWebGL(canvas,attribs);
-	g3D.viewportWidth = canvas.width;
-	g3D.viewportHeight = canvas.height;
+	attribs = { antialias:true };
+	if(!gl) gl = initWebGL(canvas,attribs);
+	gl.viewportWidth = canvas.width;
+	gl.viewportHeight = canvas.height;
 }
 
 function init() 
@@ -54,6 +54,7 @@ function init()
 	canvas.addEventListener( 'contextmenu', function ( event ) { event.preventDefault(); }, false );
 
 	infoPad = new infoPad();
+	infoPad.add("Speed game", "@Smilodon Studio");
 
 	initBuffers();
 	initShaders();
@@ -64,42 +65,78 @@ function init()
 // scene
 
 var posBuffer;
+var tcBuffer;
 function initBuffers()
 {
-	posBuffer = g3D.createBuffer();
-	g3D.bindBuffer(g3D.ARRAY_BUFFER, posBuffer);
-	var vertices = [  -1.0, -1.0, 0.0,
-			   1.0, -1.0, 0.0,
-			  -1.0,  1.0, 0.0,
-			   1.0,  1.0, 0.0 ];
+	var depth = -1.0;
+	var vertices = [  
+			-1.0, -1.0, depth,
+			 1.0, -1.0, depth,
+			-1.0,  1.0, depth,
+			 1.0,  1.0, depth, ];
 
-	g3D.bufferData(g3D.ARRAY_BUFFER, new Float32Array(vertices), g3D.STATIC_DRAW);
+	posBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, posBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
 	posBuffer.itemSize = 3;
 	posBuffer.numItems = 4;
+
+	var texCoords = [
+			0.0, 0.0,
+			1.0, 0.0,
+			0.0, 1.0,
+			1.0, 1.0, ];
+
+	tcBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, tcBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(texCoords), gl.STATIC_DRAW);
+	tcBuffer.itemSize = 2;
+	tcBuffer.numItems = 4;
+
 }
 
 
-var testProgram;
+var effFlower;
 function initShaders()
 {
-	testProgram = new program(g3D);
-	testProgram.loadFromID("shader-fs");
-	testProgram.loadFromID("shader-vs");
-	testProgram.bind();
+	effFlower = new program();
+	effFlower.loadFromID("shader-fs");
+	effFlower.loadFromID("shader-vs");
+	effFlower.bind();
+
+	effFlower.pos = gl.getAttribLocation(effFlower.program, "aPos");
+	gl.enableVertexAttribArray(effFlower.pos);
+
+	effFlower.tc = gl.getAttribLocation(effFlower.program, "aTc");
+	gl.enableVertexAttribArray(effFlower.tc);
+
+	effFlower.time = gl.getUniformLocation( effFlower.program, 'time' );
+	effFlower.resolution = gl.getUniformLocation( effFlower.program, 'resolution' );
+	effFlower.mouse = gl.getUniformLocation( effFlower.program, 'mouse' );
+	effFlower.matMVP = gl.getUniformLocation( effFlower.program, 'matMVP' );
 }
 
 function drawScene()
 {
-	g3D.viewport(0, 0, g3D.viewportWidth, g3D.viewportHeight);
-	g3D.clearColor(0.0, 0.76, 0.9, 1.0);
-	g3D.clear(g3D.COLOR_BUFFER_BIT | g3D.DEPTH_BUFFER_BIT);
+	gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
+	gl.clearColor(0.0, 0.76, 0.9, 1.0);
+	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 	
-	g3D.uniform1f( g3D.getUniformLocation( testProgram.program, 'time' ), timer.time/1000 );
-	g3D.uniform2f( g3D.getUniformLocation( testProgram.program, 'resolution' ), canvas.width, canvas.height );
-	g3D.uniform2f( g3D.getUniformLocation( testProgram.program, 'mouse' ), mouse.x, mouse.y);
-	g3D.bindBuffer(g3D.ARRAY_BUFFER, posBuffer);
-	g3D.vertexAttribPointer(testProgram.program.vertexPositionAttribute, posBuffer.itemSize, g3D.FLOAT, false, 0, 0);
-	g3D.drawArrays(g3D.TRIANGLE_STRIP, 0, posBuffer.numItems);
+	var axis = new vec3(0, 0, 1);
+	var matR = mat4.makeRotate(timer.time*0.001, axis);
+	var matMVP = mat4.makePerspective(120, gl.viewportWidth/gl.viewportHeight, 1, 5000);
+	matMVP.x(matR);
+	gl.uniform1f( effFlower.time, timer.time/1000 );
+	gl.uniform2f( effFlower.resolution, canvas.width, canvas.height );
+	gl.uniform2f( effFlower.mouse, mouse.x, mouse.y);
+	gl.uniformMatrix4fv(effFlower.matMVP, false, matMVP.elements);
+
+	gl.bindBuffer(gl.ARRAY_BUFFER, posBuffer);
+	gl.vertexAttribPointer(effFlower.pos, posBuffer.itemSize, gl.FLOAT, false, 0, 0);
+	gl.bindBuffer(gl.ARRAY_BUFFER, tcBuffer);
+	gl.vertexAttribPointer(effFlower.tc, tcBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+	gl.drawArrays(gl.TRIANGLE_STRIP, 0, posBuffer.numItems);
 
 	infoPad.show();
 
@@ -234,6 +271,7 @@ function game()
 	gameloop();
 }
 
+// ----------------------------------------------------------------------------
 
 
 

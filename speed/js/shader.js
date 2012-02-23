@@ -8,9 +8,8 @@
  *	@author: CYS
  */
 
-function program(glContex)
+var program = function()
 {
-	this.gl = glContex;
 	this.program = null;
 	this.vs = null;
 	this.ps = null;
@@ -20,7 +19,6 @@ function program(glContex)
 
 program.prototype.load = function(type, shaderSrc)
 {
-	var gl = this.gl;
 	var shader = gl.createShader(type);
 	if (shader == null)return null;
 
@@ -45,8 +43,6 @@ program.prototype.load = function(type, shaderSrc)
 
 program.prototype.loadFromID = function(id)
 {
-	var gl = this.gl;
-
 	var shaderScript = document.getElementById(id);
 	
 	if (shaderScript.type == "shader/vertex")
@@ -59,7 +55,6 @@ program.prototype.loadFromID = function(id)
 
 program.prototype.bind = function()
 {
-	var gl = this.gl;
 	this.program = gl.createProgram();
 	gl.attachShader(this.program, this.vs);
 	gl.attachShader(this.program, this.ps);
