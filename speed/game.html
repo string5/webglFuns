@@ -1,0 +1,102 @@
+﻿<!doctype html>
+<!--<html manifest="drawCache.manifest">-->
+<head>
+
+<meta charset="utf-8" />
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name=​"apple-touch-fullscreen" content=​"yes">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1 maximum-scale=1">
+<link rel="apple-touch-icon" href="game_icon.png"/>
+
+<style type="text/css">
+	html, body { border: 0; margin: 0; height: 100%; height: 100%;}
+	canvas { display: block; background-color: #0af;}
+	
+	#infoPad
+	{
+		position: absolute;
+		padding: 12px;
+
+		border: none;
+		border-radius: 5px;
+
+		color: #ffffff;
+		background-color: transparent;
+		font-family: Consolas;
+		font-size: 14px;
+		font-weight: bold;
+
+		white-space: pre;
+	}
+	#infoPad:hover{background-color:rgba(0,0,0,.3);}
+</style>
+
+</head>
+
+<title> Speed </title>
+
+
+<script src = "./js/game.js"></script>	
+<script src = "./js/gl.js"></script>	
+<script src = "./js/shader.js"></script>	
+<script src = "./js/math.js"></script>	
+<script src = "./js/util.js"></script>	
+
+<script id="shader-fs" type="shader/fragment">
+	
+	#ifdef GL_ES
+	precision highp float;
+	#endif
+	
+	uniform float time;
+	uniform vec2 resolution;
+	uniform vec4 mouse;
+
+	//float u( float x ) { return 0.5+0.5*sign(x); }
+	float u( float x )
+	{
+		return (x>0.0)?1.0:0.0;
+	}
+	//float u( float x ) { return abs(x)/x; }
+
+	void main(void)
+	{
+		vec2 p = (2.0*gl_FragCoord.xy-resolution)/resolution.y;
+
+		float a = atan(p.x,p.y);
+		float r = length(p)*.75;
+
+		float w = cos(3.1415927*time-r*2.0);
+		float h = 0.5+0.5*cos(12.0*a-w*7.0+r*8.0);
+		float d = 0.25+0.75*pow(h,1.0*r)*(0.7+0.3*w);
+
+		float col = u( d-r ) * sqrt(1.0-r/d)*r*2.5;
+		col *= 1.25+0.25*cos((12.0*a-w*7.0+r*8.0)/2.0);
+		col *= 1.0 - 0.35*(0.5+0.5*sin(r*30.0))*(0.5+0.5*cos(12.0*a-w*7.0+r*8.0));
+		gl_FragColor = vec4(
+		                   col,
+		                   col-h*0.5+r*.2 + 0.35*h*(1.0-r),
+		                   col-h*r + 0.1*h*(1.0-r),
+		                   1.0);
+	}
+
+</script>
+
+<script id="shader-vs" type="shader/vertex">
+
+	attribute vec3 aVertexPosition;
+
+	void main(void)
+	{
+		gl_Position = vec4(aVertexPosition, 1.0);
+	}
+
+</script>
+	
+
+<body onload="game();">
+<canvas id = "webgl-canvas" ></canvas>
+<textarea id="infoPad" style="visibility: visible; top: 10px; left: 5px; width: 800px; height: 400px; "></textarea>	
+</body>
+</html>

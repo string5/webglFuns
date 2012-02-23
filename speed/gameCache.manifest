@@ -1,0 +1,12 @@
+﻿CACHE MANIFEST
+
+# Version 1.05
+
+game.html
+game.js
+ball.js
+color.js
+util.js
+
+# offline icons
+game_icon.png
