@@ -715,46 +715,26 @@ mat4.makeRotate = function (angle, axis)
 	                 1]);
 };
 
-mat4.makeScale = function (vec3)
+mat4.makeScale = function (x, y, z)
 {
-	var scale = vec3.elements ? vec3.elements : vec3;
-	return new mat4([scale[0],
-	                 0,
-	                 0,
-	                 0,
-	                 0,
-	                 scale[1],
-	                 0,
-	                 0,
-	                 0,
-	                 0,
-	                 scale[2],
-	                 0,
-	                 0,
-	                 0,
-	                 0,
-	                 1]);
+	x = x || 1;
+	y = y || 1;
+	z = z || 1;
+	return new mat4([x,0,0,0,
+	                 0,y,0,0,
+	                 0,0,z,0,
+	                 0,0,0,1]);
 };
 
-mat4.makeTranslate = function (vec3)
+mat4.makeTranslate = function (x, y, z)
 {
-	var translate = vec3.elements ? vec3.elements : vec3;
-	return new mat4([1,
-	                 0,
-	                 0,
-	                 0,
-	                 0,
-	                 1,
-	                 0,
-	                 0,
-	                 0,
-	                 0,
-	                 1,
-	                 0,
-	                 translate[0],
-	                 translate[1],
-	                 translate[2],
-	                 1]);
+	x = x || 0;
+	y = y || 0;
+	z = z || 0;
+	return new mat4([1,0,0,0,
+	                 0,1,0,0,
+	                 0,0,1,0,
+			 x,y,z,1 ]);
 };
 
 var vec3 = function (x, y, z)
