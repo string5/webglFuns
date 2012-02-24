@@ -57,8 +57,7 @@ function init()
 	infoPad = new infoPad();
 	infoPad.add("Speed game", "@Smilodon Studio");
 
-	cubeTest = new box();
-	cubeTest.init();
+	cubeTest = new model("./res/teapot.json");
 }
 
 
@@ -76,7 +75,7 @@ function drawScene()
 
 	var axis = new vec3(1, 1, 1);
 	var matP = mat4.makePerspective(70, gl.viewportWidth/gl.viewportHeight, 0.1, 5000);
-	var matT = mat4.makeTranslate(0, 0, -5);
+	var matT = mat4.makeTranslate(0, 0, -50);
 	var matR = mat4.makeRotate(timer.time*0.001, axis);
 	var matMVP = new mat4();
 	matMul(matMVP, matP, matT.x(matR) );
@@ -85,7 +84,7 @@ function drawScene()
 	cubeTest.draw();
 
 	axis = new vec3(1, 0.1, 1);
-	matT = mat4.makeTranslate(2, 3, -10);
+	matT = mat4.makeTranslate(20, 30, -100);
 	matR = mat4.makeRotate(timer.time*0.0013, axis);
 	matMul(matMVP, matP, matT.x(matR) );
 	
