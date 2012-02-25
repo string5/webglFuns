@@ -53,7 +53,7 @@ program.prototype.loadFromID = function(id)
 	
 }
 
-program.prototype.bind = function()
+program.prototype.link = function()
 {
 	this.program = gl.createProgram();
 	gl.attachShader(this.program, this.vs);
@@ -65,9 +65,10 @@ program.prototype.bind = function()
 		console.error("Could not initialise shaders");
 	}
 
-	gl.useProgram(this.program);
-
-	this.program.vertexPositionAttribute = gl.getAttribLocation(this.program, "aVertexPosition");
-	gl.enableVertexAttribArray(this.program.vertexPositionAttribute);
-	
 }
+
+program.prototype.apply = function()
+{
+	gl.useProgram(this.program);
+}
+

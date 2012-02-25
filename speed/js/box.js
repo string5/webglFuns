@@ -156,14 +156,11 @@ box.prototype.initShader = function()
 	this.effCube = new program();
 	this.effCube.loadFromID("vsCube");
 	this.effCube.loadFromID("psCube");
-	this.effCube.bind();
+	this.effCube.link();
 
 	this.effCube.pos = gl.getAttribLocation(this.effCube.program, "aPos");
-	gl.enableVertexAttribArray(this.effCube.pos);
-
 	this.effCube.tc = gl.getAttribLocation(this.effCube.program, "aTc");
-	gl.enableVertexAttribArray(this.effCube.tc);
-
+	
 	this.effCube.time = gl.getUniformLocation( this.effCube.program, 'time' );
 	this.effCube.resolution = gl.getUniformLocation( this.effCube.program, 'resolution' );
 	this.effCube.mouse = gl.getUniformLocation( this.effCube.program, 'mouse' );
@@ -183,6 +180,8 @@ box.prototype.init = function()
 
 box.prototype.set = function()
 {
+	this.effCube.apply();
+
 	gl.uniform1f( this.effCube.time, timer.time/1000 );
 	gl.uniform2f( this.effCube.resolution, canvas.width, canvas.height );
 	gl.uniform2f( this.effCube.mouse, mouse.x, mouse.y);
@@ -202,8 +201,10 @@ box.prototype.setMVP = function(mvp)
 
 box.prototype.draw = function()
 {
+	gl.enableVertexAttribArray(this.effCube.pos);
 	gl.bindBuffer(gl.ARRAY_BUFFER, this.posBuffer);
 	gl.vertexAttribPointer(this.effCube.pos, this.posBuffer.itemSize, gl.FLOAT, false, 0, 0);
+	gl.enableVertexAttribArray(this.effCube.tc);
 	gl.bindBuffer(gl.ARRAY_BUFFER, this.tcBuffer);
 	gl.vertexAttribPointer(this.effCube.tc, this.tcBuffer.itemSize, gl.FLOAT, false, 0, 0);
 

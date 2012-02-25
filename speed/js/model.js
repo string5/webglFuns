@@ -7,17 +7,17 @@
  *	model
  *	@author: CYS
  */
-var model = function( file )
+var model = function( mfile, texfile )
 {
 	this.posBuffer = null;
 	this.tcBuffer  = null;
 	this.indexBuffer = null;
-	this.texDiffuse = null;
-	this.effCube = null;
+	this.effect = null;
 
-	this.initBuffers(file);
-	this.initTexture();
+	this.initBuffers(mfile);
 	this.initShader();
+	this.texDiffuse = image.load2D(texfile, [0, 200, 250, 255]);
+
 
 };
 
@@ -60,46 +60,21 @@ model.prototype.initBuffers = function(file)
 }
 
 
-
-model.prototype.initTexture = function()
-{
-	var tex = this.texDiffuse = gl.createTexture();
-	
-	var woodImage = new Image();
-	woodImage.onload = function ()
-	{
-		gl.bindTexture(gl.TEXTURE_2D, tex);
-		gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, woodImage);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
-		gl.generateMipmap(gl.TEXTURE_2D);
-
-		gl.bindTexture(gl.TEXTURE_2D, null);
-	}
-	woodImage.src = "./res/wood.gif";
-}
-
-
-
 model.prototype.initShader = function()
 {
-	this.effCube = new program();
-	this.effCube.loadFromID("vsCube");
-	this.effCube.loadFromID("psCube");
-	this.effCube.bind();
+	this.effect = new program();
+	this.effect.loadFromID("vsCube");
+	this.effect.loadFromID("psCube");
+	this.effect.link();
 
-	this.effCube.pos = gl.getAttribLocation(this.effCube.program, "aPos");
-	gl.enableVertexAttribArray(this.effCube.pos);
+	this.effect.pos = gl.getAttribLocation(this.effect.program, "aPos");
+	this.effect.tc = gl.getAttribLocation(this.effect.program, "aTc");
 
-	this.effCube.tc = gl.getAttribLocation(this.effCube.program, "aTc");
-	gl.enableVertexAttribArray(this.effCube.tc);
-
-	this.effCube.time = gl.getUniformLocation( this.effCube.program, 'time' );
-	this.effCube.resolution = gl.getUniformLocation( this.effCube.program, 'resolution' );
-	this.effCube.mouse = gl.getUniformLocation( this.effCube.program, 'mouse' );
-	this.effCube.matMVP = gl.getUniformLocation( this.effCube.program, 'matMVP' );
-	this.effCube.sampler = gl.getUniformLocation(this.effCube.program, 'Sampler');
+	this.effect.time = gl.getUniformLocation( this.effect.program, 'time' );
+	this.effect.resolution = gl.getUniformLocation( this.effect.program, 'resolution' );
+	this.effect.mouse = gl.getUniformLocation( this.effect.program, 'mouse' );
+	this.effect.matMVP = gl.getUniformLocation( this.effect.program, 'matMVP' );
+	this.effect.sampler = gl.getUniformLocation(this.effect.program, 'sampler');
 
 }
 
@@ -107,29 +82,34 @@ model.prototype.initShader = function()
 
 model.prototype.set = function()
 {
-	gl.uniform1f( this.effCube.time, timer.time/1000 );
-	gl.uniform2f( this.effCube.resolution, canvas.width, canvas.height );
-	gl.uniform2f( this.effCube.mouse, mouse.x, mouse.y);
+	this.effect.apply();
+
+	gl.uniform1f( this.effect.time, timer.time/1000 );
+	gl.uniform2f( this.effect.resolution, canvas.width, canvas.height );
+	gl.uniform2f( this.effect.mouse, mouse.x, mouse.y);
 
 	gl.activeTexture(gl.TEXTURE0);
 	gl.bindTexture(gl.TEXTURE_2D, this.texDiffuse);
-	gl.uniform1i(this.effCube.sampler, 0);
+	gl.uniform1i(this.effect.sampler, 0);
 
 }
 
 
 model.prototype.setMVP = function(mvp)
 {
-	gl.uniformMatrix4fv(this.effCube.matMVP, false, mvp.elements);
+	gl.uniformMatrix4fv(this.effect.matMVP, false, mvp.elements);
 }
 
 
 model.prototype.draw = function()
 {
+	gl.enableVertexAttribArray(this.effect.pos);
 	gl.bindBuffer(gl.ARRAY_BUFFER, this.posBuffer);
-	gl.vertexAttribPointer(this.effCube.pos, this.posBuffer.itemSize, gl.FLOAT, false, 0, 0);
+	gl.vertexAttribPointer(this.effect.pos, this.posBuffer.itemSize, gl.FLOAT, false, 0, 0);
+	
+	gl.enableVertexAttribArray(this.effect.tc);
 	gl.bindBuffer(gl.ARRAY_BUFFER, this.tcBuffer);
-	gl.vertexAttribPointer(this.effCube.tc, this.tcBuffer.itemSize, gl.FLOAT, false, 0, 0);
+	gl.vertexAttribPointer(this.effect.tc, this.tcBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
 	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
 	gl.drawElements(gl.TRIANGLES, this.indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);

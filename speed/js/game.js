@@ -16,7 +16,10 @@ var infoPad;
 var timer = {time: 0, dtime: 0, startime: Date.now(), lasttime: Date.now() };
 var mouse = {x: 0, y: 0, down: false};
 
-var cubeTest;
+var cameraFPS;
+var modelTest;
+var skyBox;
+var iceGround;
 
 // ----------------------------------------------------------------------------
 // initlalize
@@ -57,7 +60,23 @@ function init()
 	infoPad = new infoPad();
 	infoPad.add("Speed game", "@Smilodon Studio");
 
-	cubeTest = new model("./res/teapot.json");
+	cameraFPS = new camera();
+	cameraFPS.setProj(70, gl.viewportWidth, gl.viewportHeight, 0.1, 5000);
+	var cubeFiles = 
+		[
+			"./res/posx.jpg",
+			"./res/negx.jpg",
+			"./res/posy.jpg",
+			"./res/negy.jpg",
+			"./res/posz.jpg",
+			"./res/negz.jpg"
+		];
+
+	skyBox = new sky(cubeFiles);
+	iceGround = new water(cubeFiles);
+
+	modelTest = new model("./res/teapot.json", "./res/wood.gif");
+
 }
 
 
@@ -67,29 +86,45 @@ function init()
 function drawScene()
 {
 	gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
-	gl.clearColor(0.0, 0.76, 0.9, 1.0);
-	gl.enable(gl.DEPTH_TEST);
+
+	gl.clearColor(1.0, 0.7, 0.0, 1.0);
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 	
-	cubeTest.set();
-
-	var axis = new vec3(1, 1, 1);
-	var matP = mat4.makePerspective(70, gl.viewportWidth/gl.viewportHeight, 0.1, 5000);
-	var matT = mat4.makeTranslate(0, 0, -50);
-	var matR = mat4.makeRotate(timer.time*0.001, axis);
-	var matMVP = new mat4();
-	matMul(matMVP, matP, matT.x(matR) );
-
-	cubeTest.setMVP(matMVP);
-	cubeTest.draw();
-
-	axis = new vec3(1, 0.1, 1);
-	matT = mat4.makeTranslate(20, 30, -100);
-	matR = mat4.makeRotate(timer.time*0.0013, axis);
-	matMul(matMVP, matP, matT.x(matR) );
+	// camera
+	var a = Math.cos(timer.time*0.0002);
+	var b = Math.sin(timer.time*0.0002);
+	var lookDir = new vec3(a, 0, b);
+	var pos = new vec3(0, 1, 0.2);
+	cameraFPS.setView(pos, lookDir);
 	
-	cubeTest.setMVP(matMVP);
-	cubeTest.draw();
+	// skyBox
+	gl.disable(gl.DEPTH_TEST);
+	var matIVP = matMul(cameraFPS.matProj, cameraFPS.matView);
+	skyBox.draw(matIVP.inverse());
+	
+	// scene
+	gl.enable(gl.DEPTH_TEST);
+
+	iceGround.draw(cameraFPS.matVP);
+
+	modelTest.set();
+
+	var axis = new vec3(0, 1, 0);
+	var matT = mat4.makeTranslate(0, 5, -150);
+	var matR = mat4.makeRotate(timer.time*0.001, axis);
+	
+	var matMVP = matMul(cameraFPS.matVP, matT.x(matR) );
+
+	modelTest.setMVP(matMVP);
+	modelTest.draw();
+
+	axis = new vec3(0, -1, 0);
+	matT = mat4.makeTranslate(50, 5, -100);
+	matR = mat4.makeRotate(timer.time*0.0013, axis);
+	matMVP = matMul(cameraFPS.matVP, matT.x(matR) );
+	
+	modelTest.setMVP(matMVP);
+	modelTest.draw();
 
 	infoPad.show();
 

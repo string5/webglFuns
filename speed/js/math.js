@@ -531,7 +531,8 @@ mat4.prototype.trace = mat4.prototype.tr = function ()
 	return (e[0] + e[5] + e[10] + e[15])
 }
 
-       mat4.prototype.inverse = function ()
+
+mat4.prototype.inverse = function ()
 {
 	var mat = this.elements;
 	// Cache the mat4 values (makes for huge speed increases!)
@@ -737,8 +738,9 @@ mat4.makeTranslate = function (x, y, z)
 			 x,y,z,1 ]);
 };
 
-function matMul(res, a, b)
+function matMul(a, b)
 {
+	var res = new mat4();
 	var r = res.elements, m1 = a.elements, m2 = b.elements,
 
 	m10 = m1[0], m11 = m1[4], m12 = m1[8], m13 = m1[12],
@@ -773,6 +775,7 @@ function matMul(res, a, b)
 	r[14] = m18 * m23 + m19 * m27 + m110 * m211 + m111 * m215;
 	r[15] = m112 * m23 + m113 * m27 + m114 * m211 + m115 * m215;
 
+	return res;
 
 }
 
@@ -790,6 +793,15 @@ vec3.prototype.setElements = function (vec3)
 	this.elements[0] = vec3[0];
 	this.elements[1] = vec3[1];
 	this.elements[2] = vec3[2];
+
+	return this;
+};
+
+vec3.prototype.negative = function ()
+{
+	this.elements[0] = -this.elements[0];
+	this.elements[1] = -this.elements[1];
+	this.elements[2] = -this.elements[2];
 
 	return this;
 };
@@ -819,7 +831,7 @@ vec3.prototype.sub = function (vec3)
 }
 
 
-vec3.prototype.mul = function (vec3)
+vec3.prototype.cross = function (vec3)
 {
 	var a = this.elements,
 	    b = vec3.elements,
@@ -866,6 +878,23 @@ vec3.set = function ()
 {
 	var elements = arguments[2] ? [arguments[0], arguments[1], arguments[2]] : arguments[0];
 	return (new mat4(elements));
+}
+
+function cross(x, y)
+{
+	var a = x.elements;
+	var b = y.elements;
+	var a0 = a[0], a1 = a[1], a2 = a[2];
+	var b0 = b[0], b1 = b[1], b2 = b[2];
+
+	var r = new vec3();
+	var c = r.elements;
+
+	c[0] = a1 * b2 - a2 * b1;
+	c[1] = a2 * b0 - a0 * b2;
+	c[2] = a0 * b1 - a1 * b0;
+
+	return r;
 }
 
 window.v3 = vec3;

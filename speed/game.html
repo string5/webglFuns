@@ -11,7 +11,7 @@
 
 <style type="text/css">
 	html, body { border: 0; margin: 0; height: 100%; height: 100%;}
-	canvas { display: block; background-color: #0af;}
+	canvas { display: block; background-color: #00f;}
 	
 	#infoPad
 	{
@@ -44,8 +44,13 @@
 <script src = "./js/util.js"></script>	
 <script src = "./js/box.js"></script>	
 <script src = "./js/model.js"></script>	
+<script src = "./js/image.js"></script>	
+<script src = "./js/camera.js"></script>	
+<script src = "./js/sky.js"></script>	
+<script src = "./js/water.js"></script>	
 
 <!----------------------shader--------------------------->
+<!--------- test ---------------------------------------->
 <script id="vsCube" type="shader/vertex">
 
 	attribute vec3 aPos;
@@ -81,6 +86,82 @@
 	}
 
 </script>
+
+<!------------------- SkyBox -------------------------------->
+<script id="vsSkybox" type="shader/vertex">
+	#ifdef GL_ES
+	precision highp float;
+	#endif
+	
+	attribute vec3 aPos;
+	
+	uniform mat4 matIVP;
+	
+	varying vec3 tc;
+	void main(void)
+	{
+		gl_Position = vec4(aPos, 1.0);
+		tc = (matIVP * vec4(aPos, 1.0)).xyz;
+		tc = normalize(tc);
+	}
+
+</script>
+
+<script id="psSkybox" type="shader/fragment">
+	
+	#ifdef GL_ES
+	precision highp float;
+	#endif
+	
+	uniform samplerCube sampler;
+	
+	varying vec3 tc;
+	void main(void)
+	{ 
+		gl_FragColor = textureCube(sampler, tc);
+	}
+
+</script>
+
+
+
+<!------------------- IceGround -------------------------------->
+<script id="vsIce" type="shader/vertex">
+	#ifdef GL_ES
+	precision highp float;
+	#endif
+	
+	attribute vec3 aPos;
+	
+	uniform mat4 matMVP;
+	
+	varying vec3 tc;
+	void main(void)
+	{
+		gl_Position = matMVP * vec4(aPos, 1.0);
+		tc = normalize(gl_Position.xyz);
+	}
+
+</script>
+
+<script id="psIce" type="shader/fragment">
+	
+	#ifdef GL_ES
+	precision highp float;
+	#endif
+	
+	uniform samplerCube sampler;
+	
+	varying vec3 tc;
+	void main(void)
+	{ 
+		gl_FragColor = textureCube(sampler, tc);
+		gl_FragColor *= vec4(0.1, 0.2, 0.4, 1.0);
+	}
+
+</script>
+
+
 <!----------------------shader--------------------------->
 
 
