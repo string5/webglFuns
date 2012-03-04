@@ -56,7 +56,7 @@ sky.prototype.draw = function(matIVP)
 {	
 	this.effect.apply();
 
-	gl.uniformMatrix4fv(this.effect.matIVP, false, matIVP.elements);
+	gl.uniformMatrix4fv(this.effect.matIVP, false, matIVP.e);
 
 	gl.activeTexture(gl.TEXTURE0);
 	gl.bindTexture(gl.TEXTURE_CUBE_MAP, this.texCube);

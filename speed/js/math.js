@@ -29,31 +29,31 @@ var identitymat4 = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
 
 var mat4 = function (els)
 {
-	this.elements = new glMatrixArrayType(els || identitymat4);
+	this.e = new glMatrixArrayType(els || identitymat4);
 	return this;
 };
 
 mat4.prototype.I = mat4.prototype.identity = function ()
 {
-	this.elements = identitymat4;
+	this.e = identitymat4;
 	return this;
 };
 
 
 mat4.prototype.e = function (i, j)
 {
-	return this.elements[((i - 1) * 4) + (j - 1)];
+	return this.e[((i - 1) * 4) + (j - 1)];
 };
 
 mat4.prototype.row = function (i)
 {
-	var e = this.elements;
+	var e = this.e;
 	return [e[i - 1], e[3 + i], e[7 + i], e[11 + i]];
 };
 
 mat4.prototype.col = function (i)
 {
-	var e = this.elements;
+	var e = this.e;
 	return [e[i * 4 - 4], e[i * 4 - 3], e[i * 4 - 2], e[i * 4 - 1]];
 };
 
@@ -75,7 +75,7 @@ mat4.prototype.cols = function ()
 var precision = 1e-6;
 mat4.prototype.eql = function (mat4)
 {
-	var i = 16, e1 = this.elements, e2 = mat4.elements;
+	var i = 16, e1 = this.e, e2 = mat4.e;
 
 	return Math.abs(e1[0] - e2[0]) < precision &&
 	       Math.abs(e1[1] - e2[1]) < precision &&
@@ -97,7 +97,7 @@ mat4.prototype.eql = function (mat4)
 
 mat4.prototype.setElements = function (els)
 {
-	var e = this.elements;
+	var e = this.e;
 
 	e[0] = els[0];
 	e[1] = els[1];
@@ -124,12 +124,12 @@ mat4.prototype.setElements = function (els)
 
 mat4.prototype.dup = function ()
 {
-	return (new mat4(this.elements));
+	return (new mat4(this.e));
 };
 
 mat4.prototype.map = function (fn)
 {
-	var e = this.elements;
+	var e = this.e;
 
 	e[0] = fn(e[0], 0, 0);
 	e[1] = fn(e[1], 0, 1);
@@ -157,7 +157,7 @@ mat4.prototype.map = function (fn)
 mat4.prototype.add = function (mat4)
 {
 
-	var els1 = this.elements, els2 = mat4.elements;
+	var els1 = this.e, els2 = mat4.e;
 
 	els1[0] = els1[0] + els2[0];
 	els1[1] = els1[1] + els2[1];
@@ -182,7 +182,7 @@ mat4.prototype.add = function (mat4)
 mat4.prototype.sub = function (mat4)
 {
 
-	var els1 = this.elements, els2 = mat4.elements;
+	var els1 = this.e, els2 = mat4.e;
 
 	els1[0] = els1[0] - els2[0];
 	els1[1] = els1[1] - els2[1];
@@ -206,7 +206,7 @@ mat4.prototype.sub = function (mat4)
 
 mat4.prototype.mul = mat4.prototype.x = function (mat4)
 {
-	var m1 = this.elements, m2 = mat4.elements || mat4,
+	var m1 = this.e, m2 = mat4.e || mat4,
 	    m10 = m1[0], m11 = m1[4], m12 = m1[8], m13 = m1[12],
 	    m14 = m1[1], m15 = m1[5], m16 = m1[9], m17 = m1[13],
 	    m18 = m1[2], m19 = m1[6], m110 = m1[10], m111 = m1[14],
@@ -244,7 +244,7 @@ mat4.prototype.mul = mat4.prototype.x = function (mat4)
 
 mat4.prototype.translate = function (vec3)
 {
-	var m1 = this.elements, v1 = vec3.elements || vec3,
+	var m1 = this.e, v1 = vec3.e || vec3,
 	    m10 = m1[0], m11 = m1[4], m12 = m1[8], m13 = m1[12],
 	    m14 = m1[1], m15 = m1[5], m16 = m1[9], m17 = m1[13],
 	    m18 = m1[2], m19 = m1[6], m110 = m1[10], m111 = m1[14],
@@ -279,8 +279,8 @@ mat4.prototype.translate = function (vec3)
 
 mat4.prototype.rotate = function (theta, vec3)
 {
-	var v = vec3.elements ? vec3.elements : vec3,
-	    m1 = this.elements,
+	var v = vec3.e ? vec3.e : vec3,
+	    m1 = this.e,
 	    v0 = v[0], v1 = v[1], v2 = v[2],
 	    mod = Math.sqrt(v0 * v0 + v1 * v1 + v2 * v2),
 	    x = v0 / mod, y = v1 / mod, z = v2 / mod,
@@ -320,8 +320,8 @@ mat4.prototype.rotate = function (theta, vec3)
 
 mat4.prototype.scale = function (vec3)
 {
-	var s = vec3.elements ? vec3.elements : vec3,
-	    m1 = this.elements,
+	var s = vec3.e ? vec3.e : vec3,
+	    m1 = this.e,
 
 	    m10 = m1[0], m11 = m1[4], m12 = m1[8], m13 = m1[12],
 	    m14 = m1[1], m15 = m1[5], m16 = m1[9], m17 = m1[13],
@@ -356,7 +356,7 @@ mat4.prototype.scale = function (vec3)
 
 mat4.prototype.transpose = function ()
 {
-	var e = this.elements,
+	var e = this.e,
 
 	k = e[1];
 	e[1] = e[4];
@@ -387,7 +387,7 @@ mat4.prototype.transpose = function ()
 
 mat4.prototype.max = function ()
 {
-	var e = this.elements;
+	var e = this.e;
 	var m = e[0];
 	
 	for(var i = 1; i < 16; i++)
@@ -400,7 +400,7 @@ mat4.prototype.max = function ()
 
 mat4.prototype.min = function ()
 {
-	var e = this.elements;
+	var e = this.e;
 	var m = e[0];
 
 	for(var i = 1; i < 16; i++)
@@ -413,7 +413,7 @@ mat4.prototype.min = function ()
 
 mat4.prototype.indexOf = function (value)
 {
-	e = this.elements;
+	e = this.e;
 
 	if (e[0] == value)
 	{
@@ -500,13 +500,13 @@ mat4.prototype.indexOf = function (value)
 
 mat4.prototype.diagonal = function ()
 {
-	var els = this.elements;
+	var els = this.e;
 	return [els[0], els[5], els[10], els[15]];
 }
 
 mat4.prototype.determinant = mat4.prototype.det = function ()
 {
-	var m1 = this.elements,
+	var m1 = this.e,
 	    m00 = m1[0], m01 = m1[4], m02 = m1[8], m03 = m1[12],
 	    m10 = m1[1], m11 = m1[5], m12 = m1[9], m13 = m1[13],
 	    m20 = m1[2], m21 = m1[6], m22 = m1[10], m23 = m1[14],
@@ -527,14 +527,14 @@ mat4.prototype.isSingular = function ()
 
 mat4.prototype.trace = mat4.prototype.tr = function ()
 {
-	var e = this.elements;
+	var e = this.e;
 	return (e[0] + e[5] + e[10] + e[15])
 }
 
 
 mat4.prototype.inverse = function ()
 {
-	var mat = this.elements;
+	var mat = this.e;
 	// Cache the mat4 values (makes for huge speed increases!)
 	var a00 = mat[0], a01 = mat[1], a02 = mat[2], a03 = mat[3];
 	var a10 = mat[4], a11 = mat[5], a12 = mat[6], a13 = mat[7];
@@ -580,7 +580,7 @@ mat4.prototype.inverse = function ()
 
 mat4.prototype.view = function ()
 {
-	var e = this.elements;
+	var e = this.e;
 	return "[ " + e[0] + " , " + e[4] + " , " + e[8] + " , " + e[12] + " ] \n " +
 	       "[ " + e[1] + " , " + e[5] + " , " + e[9] + " , " + e[13] + " ] \n " +
 	       "[ " + e[2] + " , " + e[6] + " , " + e[10] + " , " + e[14] + " ] \n " +
@@ -590,7 +590,7 @@ mat4.prototype.view = function ()
 mat4.prototype.rand = function ()
 {
 
-	var e = this.elements;
+	var e = this.e;
 
 	e[0] = Math.random() * 1000;
 	e[1] = Math.random() * 1000;
@@ -618,11 +618,11 @@ mat4.I = function ()
 }
 mat4.set = mat4.$ = function ()
 {
-	var elements = arguments[15] ? [arguments[0], arguments[1], arguments[2], arguments[3],
+	var e = arguments[15] ? [arguments[0], arguments[1], arguments[2], arguments[3],
 	                                arguments[4], arguments[5], arguments[6], arguments[7],
 	                                arguments[8], arguments[9], arguments[10], arguments[11],
 	                                arguments[12], arguments[13], arguments[14], arguments[15]] : arguments[0];
-	return (new mat4(elements));
+	return (new mat4(e));
 }
 mat4.makeFrustum = function (left, right, bottom, top, znear, zfar)
 {
@@ -690,10 +690,30 @@ mat4.makeOrtho = function (left, right, bottom, top, znear, zfar)
 	                 0]);
 };
 
+mat4.makeMirror = function (left, right, bottom, top, znear, zfar)
+{
+	return new mat4([2 / (right - left),
+	                 0,
+	                 0,
+	                 0,
+	                 0,
+	                 2 / (top - bottom),
+	                 0,
+	                 0,
+	                 0,
+	                 0,
+	                 -2 / (zfar - znear),
+	                 0,
+	                 -(right + left) / (right - left),
+	                 -(top + bottom) / (top - bottom),
+	                 -(zfar + znear) / (zfar - znear),
+	                 0]);
+};
+
 mat4.makeRotate = function (angle, axis)
 {
-	var normAxis = axis.elements ? axis.normalize() : vec3.set(axis).normalize();
-	var nAxis = normAxis.elements;
+	var normAxis = axis.e ? axis.normalize() : vec3.set(axis).normalize();
+	var nAxis = normAxis.e;
 	var x = nAxis[0], y = nAxis[1], z = nAxis[2];
 	var c = Math.cos(angle),
 	    c1 = 1 - c,
@@ -741,7 +761,7 @@ mat4.makeTranslate = function (x, y, z)
 function matMul(a, b)
 {
 	var res = new mat4();
-	var r = res.elements, m1 = a.elements, m2 = b.elements,
+	var r = res.e, m1 = a.e, m2 = b.e,
 
 	m10 = m1[0], m11 = m1[4], m12 = m1[8], m13 = m1[12],
 	m14 = m1[1], m15 = m1[5], m16 = m1[9], m17 = m1[13],
@@ -779,37 +799,56 @@ function matMul(a, b)
 
 }
 
+mat4.rotateXY = function(angleX, angleY)
+{
+        var	cosX = Math.cos(angleX), sinX = Math.sin(angleX),
+		cosY = Math.cos(angleY), sinY = Math.sin(angleY);
+
+        return new mat4([
+                       cosY, -sinX * sinY, -cosX * sinY, 0,
+                       0,     cosX,        -sinX,        0,
+                       sinY,  sinX * cosY,  cosX * cosY, 0,
+                       0,     0,            0,           1]);
+}
+
+var vec4 = function()
+{
+	this.e = new glMatrixArrayType([0, 0, 0, 0]);
+	return this;
+}
+
 var vec3 = function (x, y, z)
 {
-	this.elements = new glMatrixArrayType([0, 0, 0]);
-	this.elements[0] = x || 0;
-	this.elements[1] = y || 0;
-	this.elements[2] = z || 0;
+	this.e = new glMatrixArrayType([0, 0, 0]);
+	this.e[0] = x || 0;
+	this.e[1] = y || 0;
+	this.e[2] = z || 0;
+
 	return this;
 };
 
 vec3.prototype.setElements = function (vec3)
 {
-	this.elements[0] = vec3[0];
-	this.elements[1] = vec3[1];
-	this.elements[2] = vec3[2];
+	this.e[0] = vec3[0];
+	this.e[1] = vec3[1];
+	this.e[2] = vec3[2];
 
 	return this;
 };
 
 vec3.prototype.negative = function ()
 {
-	this.elements[0] = -this.elements[0];
-	this.elements[1] = -this.elements[1];
-	this.elements[2] = -this.elements[2];
+	this.e[0] = -this.e[0];
+	this.e[1] = -this.e[1];
+	this.e[2] = -this.e[2];
 
 	return this;
 };
 
 vec3.prototype.add = function (vec3)
 {
-	var a = this.elements,
-	    b = vec3.elements;
+	var a = this.e,
+	    b = vec3.e;
 
 	a[0] = a[0] + b[0];
 	a[1] = a[1] + b[1];
@@ -820,8 +859,8 @@ vec3.prototype.add = function (vec3)
 
 vec3.prototype.sub = function (vec3)
 {
-	var a = this.elements,
-	    b = vec3.elements;
+	var a = this.e,
+	    b = vec3.e;
 
 	a[0] = a[0] - b[0];
 	a[1] = a[1] - b[1];
@@ -833,8 +872,8 @@ vec3.prototype.sub = function (vec3)
 
 vec3.prototype.cross = function (vec3)
 {
-	var a = this.elements,
-	    b = vec3.elements,
+	var a = this.e,
+	    b = vec3.e,
 	    a0 = a[0], a1 = a[1], a2 = a[2],
 	    b0 = b[0], b1 = b[1], b2 = b[2];
 
@@ -847,15 +886,15 @@ vec3.prototype.cross = function (vec3)
 
 vec3.prototype.length = function ()
 {
-	var a = this.elements;
+	var a = this.e;
 
 	return Math.sqrt(a[0] * a[0] + a[1] * a[1] + a[2] * a[2]);
 };
 
 vec3.prototype.dot = function (vec3)
 {
-	var a = this.elements,
-	    b = vec3.elements;
+	var a = this.e,
+	    b = vec3.e;
 
 	return a[0] * b[0] +
 	       a[1] * b[1] +
@@ -864,7 +903,7 @@ vec3.prototype.dot = function (vec3)
 
 vec3.prototype.normalize = function ()
 {
-	var a = this.elements,
+	var a = this.e,
 	    l = 1 / Math.sqrt(a[0] * a[0] + a[1] * a[1] + a[2] * a[2]);
 
 	a[0] = a[0] * l;
@@ -876,19 +915,19 @@ vec3.prototype.normalize = function ()
 
 vec3.set = function ()
 {
-	var elements = arguments[2] ? [arguments[0], arguments[1], arguments[2]] : arguments[0];
-	return (new mat4(elements));
+	var e = arguments[2] ? [arguments[0], arguments[1], arguments[2]] : arguments[0];
+	return (new mat4(e));
 }
 
 function cross(x, y)
 {
-	var a = x.elements;
-	var b = y.elements;
+	var a = x.e;
+	var b = y.e;
 	var a0 = a[0], a1 = a[1], a2 = a[2];
 	var b0 = b[0], b1 = b[1], b2 = b[2];
 
 	var r = new vec3();
-	var c = r.elements;
+	var c = r.e;
 
 	c[0] = a1 * b2 - a2 * b1;
 	c[1] = a2 * b0 - a0 * b2;
@@ -897,5 +936,7 @@ function cross(x, y)
 	return r;
 }
 
-window.v3 = vec3;
-window.m4 = mat4;
+function lerp(a, b, t)
+{
+	return a*t + b*(1-t);
+}

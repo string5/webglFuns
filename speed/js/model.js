@@ -9,7 +9,15 @@
  */
 var model = function( mfile, texfile )
 {
+	this.pos = new vec3();
+	this.dir = new vec3(0,0,-1);
+	this.v = new vec3();
+	this.a = new vec3();
+	this.pitch = 0;
+	this.oldPitch = 0;
+	
 	this.posBuffer = null;
+	this.norBuffer = null;
 	this.tcBuffer  = null;
 	this.indexBuffer = null;
 	this.effect = null;
@@ -21,10 +29,17 @@ var model = function( mfile, texfile )
 
 };
 
+model.prototype.update = function()
+{
+	this.v.add(this.a);
+	if(this.v.length() > maxSpeed) this.v.normalize()*maxSpeed;
+	this.pos.add(this.v);
+}
 
 model.prototype.initBuffers = function(file)
 {
 	var posBuffer = this.posBuffer = gl.createBuffer();
+	var norBuffer = this.norBuffer = gl.createBuffer();
 	var tcBuffer = this.tcBuffer = gl.createBuffer();
 	var indexBuffer = this.indexBuffer = gl.createBuffer();
 
@@ -36,17 +51,20 @@ model.prototype.initBuffers = function(file)
 		{
 			var data = JSON.parse(request.responseText);
 
-			
 			gl.bindBuffer(gl.ARRAY_BUFFER, posBuffer);
 			gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data.pos), gl.STATIC_DRAW);
 			posBuffer.itemSize = 3;
 			posBuffer.numItems = data.pos.length/3;
 
-			
+			gl.bindBuffer(gl.ARRAY_BUFFER, norBuffer);
+			gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data.nor), gl.STATIC_DRAW);
+			posBuffer.itemSize = 3;
+			posBuffer.numItems = data.nor.length/3;
+
 			gl.bindBuffer(gl.ARRAY_BUFFER, tcBuffer);
 			gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data.texcoord), gl.STATIC_DRAW);
 			tcBuffer.itemSize = 2;
-			tcBuffer.numItems = data.pos.texcoord/2;
+			tcBuffer.numItems = data.texcoord.length/2;
 
 			gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
 			gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(data.indices), gl.STATIC_DRAW);
@@ -67,7 +85,9 @@ model.prototype.initShader = function()
 	this.effect.loadFromID("psCube");
 	this.effect.link();
 
+	this.effect.apply();
 	this.effect.pos = gl.getAttribLocation(this.effect.program, "aPos");
+	this.effect.nor = gl.getAttribLocation(this.effect.program, "aNor");
 	this.effect.tc = gl.getAttribLocation(this.effect.program, "aTc");
 
 	this.effect.time = gl.getUniformLocation( this.effect.program, 'time' );
@@ -97,17 +117,22 @@ model.prototype.set = function()
 
 model.prototype.setMVP = function(mvp)
 {
-	gl.uniformMatrix4fv(this.effect.matMVP, false, mvp.elements);
+	gl.uniformMatrix4fv(this.effect.matMVP, false, mvp.e);
 }
 
 
 model.prototype.draw = function()
 {
 	gl.enableVertexAttribArray(this.effect.pos);
+	gl.enableVertexAttribArray(this.effect.nor);
+	gl.enableVertexAttribArray(this.effect.tc);
+	
 	gl.bindBuffer(gl.ARRAY_BUFFER, this.posBuffer);
 	gl.vertexAttribPointer(this.effect.pos, this.posBuffer.itemSize, gl.FLOAT, false, 0, 0);
 	
-	gl.enableVertexAttribArray(this.effect.tc);
+	gl.bindBuffer(gl.ARRAY_BUFFER, this.norBuffer);
+	gl.vertexAttribPointer(this.effect.nor, this.norBuffer.itemSize, gl.FLOAT, false, 0, 0);
+	
 	gl.bindBuffer(gl.ARRAY_BUFFER, this.tcBuffer);
 	gl.vertexAttribPointer(this.effect.tc, this.tcBuffer.itemSize, gl.FLOAT, false, 0, 0);
 

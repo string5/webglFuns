@@ -44,6 +44,7 @@
 <script src = "./js/util.js"></script>	
 <script src = "./js/box.js"></script>	
 <script src = "./js/model.js"></script>	
+<script src = "./js/poly.js"></script>	
 <script src = "./js/image.js"></script>	
 <script src = "./js/camera.js"></script>	
 <script src = "./js/sky.js"></script>	
@@ -52,8 +53,53 @@
 <!----------------------shader--------------------------->
 <!--------- test ---------------------------------------->
 <script id="vsCube" type="shader/vertex">
-
+	#ifdef GL_ES
+	precision highp float;
+	#endif
+	
 	attribute vec3 aPos;
+	attribute vec3 aNor;
+	attribute vec2 aTc;
+	
+	uniform mat4 matMVP;
+	
+	varying vec2 tc;
+	void main(void)
+	{
+		gl_Position = matMVP * vec4(aPos, 1.0);
+		tc = vec2(aTc.x, -aTc.y);
+	}
+
+</script>
+
+<script id="psCube" type="shader/fragment">
+	
+	#ifdef GL_ES
+	precision highp float;
+	#endif
+	
+	uniform float time;
+	uniform vec2 resolution;
+	uniform vec2 mouse;
+
+	uniform sampler2D sampler;
+	
+	varying vec2 tc;
+	void main(void)
+	{
+		gl_FragColor = texture2D(sampler, tc);
+	}
+
+</script>
+
+<!---------  icePoly  ---------------------------------------->
+<script id="vsIcePoly" type="shader/vertex">
+	#ifdef GL_ES
+	precision highp float;
+	#endif
+	
+	attribute vec3 aPos;
+	attribute vec3 aNor;
 	attribute vec2 aTc;
 	
 	uniform mat4 matMVP;
@@ -67,7 +113,7 @@
 
 </script>
 
-<script id="psCube" type="shader/fragment">
+<script id="psIcePoly" type="shader/fragment">
 	
 	#ifdef GL_ES
 	precision highp float;
@@ -75,7 +121,7 @@
 	
 	uniform float time;
 	uniform vec2 resolution;
-	uniform vec4 mouse;
+	uniform vec2 mouse;
 
 	uniform sampler2D sampler;
 	
@@ -86,6 +132,8 @@
 	}
 
 </script>
+
+<!------------------- SkyBox -------------------------------->
 
 <!------------------- SkyBox -------------------------------->
 <script id="vsSkybox" type="shader/vertex">
@@ -134,12 +182,17 @@
 	attribute vec3 aPos;
 	
 	uniform mat4 matMVP;
+	uniform vec3 camPos;
 	
-	varying vec3 tc;
+	varying vec2 tc;
+	varying vec3 tcCube;
+	varying vec3 eyeDir;
+	
 	void main(void)
 	{
 		gl_Position = matMVP * vec4(aPos, 1.0);
-		tc = normalize(gl_Position.xyz);
+		tc = aPos.xz*0.02;
+		eyeDir = camPos - aPos;
 	}
 
 </script>
@@ -150,13 +203,30 @@
 	precision highp float;
 	#endif
 	
-	uniform samplerCube sampler;
+	uniform samplerCube samplerR;
+	uniform sampler2D samplerSuf;
 	
-	varying vec3 tc;
+	varying vec2 tc;
+	varying vec3 tcCube;
+	varying vec3 eyeDir;
+	
 	void main(void)
 	{ 
-		gl_FragColor = textureCube(sampler, tc);
-		gl_FragColor *= vec4(0.1, 0.2, 0.4, 1.0);
+		vec4 suf0 = texture2D(samplerSuf, tc);
+		vec4 suf1 = texture2D(samplerSuf, tc*2.0);
+		vec4 suf  = (suf0 + suf1)*0.5;
+		vec3 eye = normalize(eyeDir);
+		vec3 nor = vec3(suf.x-0.5, 10, suf.z - 0.5);
+		nor = normalize(nor);
+		float eDotN =  1.0 - dot(eye, nor);
+		float fresnel = pow(eDotN, 7.5);
+		vec4 refra = suf;
+		vec3 refleCoord = reflect(-eye, nor);
+		vec4 refle = textureCube(samplerR, refleCoord);
+		vec4 sufColor = mix(refra, refle, fresnel);
+		vec4 suf3 = texture2D(samplerSuf, tc*3.0);
+		sufColor = mix(sufColor, suf3, suf3.y*suf3.y);
+		gl_FragColor = vec4(sufColor.xyz, pow(suf.z, 2.0)*3.7);
 	}
 
 </script>
@@ -167,6 +237,6 @@
 
 <body onload="game();">
 <canvas id = "webgl-canvas" ></canvas>
-<textarea id="infoPad" style="visibility: visible; top: 10px; left: 5px; width: 800px; height: 400px; "></textarea>	
+<textarea id="infoPad" style="visibility: visible; top: 10px; left: 5px; width: 1250px; height: 600px; "></textarea>	
 </body>
 </html>
